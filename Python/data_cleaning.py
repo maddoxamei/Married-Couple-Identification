@@ -26,18 +26,7 @@ median_val = np.nanmedian(dfs.get('customer_demog')['customer_income_level'])
 dfs.get('customer_demog')['customer_income_level'] = dfs.get('customer_demog')['customer_income_level'].replace(np.nan,median_val)
 #dfs.get('customer_demog')['customer_income_level'].fillna(median_val, inplace=True) #This doesn't work.
 
-
-
-
-
-
-
-
-
-
-#print(dfs['customer_demog_1']['customer_income_level'].value_counts())
-
-#dfs['customer_demog_1']['customer_income_level'].hist(bins=50,figsize=(20,15))
+#dfs['customer_demog']['customer_income_level'].hist(bins=50,figsize=(20,15))
 #save_fig("attribute_histogram_plots")
 #plt.show()
 
