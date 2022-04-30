@@ -1,19 +1,19 @@
 import pandas as pd
 import os
 
-path = "../data"
-schema = pd.read_excel(os.path.join(path, "schema.xlsx"), 1, engine='openpyxl')
-schema.loc[:,'VARIABLE_NAME'] = schema.loc[:,'VARIABLE_NAME'].str.lower()
+_path = "../data"
+_schema = pd.read_excel(os.path.join(_path, "schema.xlsx"), 1, engine='openpyxl')
+_schema.loc[:,'VARIABLE_NAME'] = _schema.loc[:,'VARIABLE_NAME'].str.lower()
 
 # Matches the file name with the table name in the schema
 #	{filename : table_name}
-table_reference = pd.Series(schema.loc[:,'table'].values, index=schema.loc[:,'.csv']).to_dict()
-df_name_reference = pd.Series(schema.loc[:,'space'].values, index=schema.loc[:,'.csv']).to_dict() #WIP
+_table_reference = pd.Series(_schema.loc[:,'table'].values, index=_schema.loc[:,'.csv']).to_dict()
+_df_name_reference = pd.Series(_schema.loc[:,'space'].values, index=_schema.loc[:,'.csv']).to_dict() #WIP
 
 # Matches variable names to their translations for each table, respectively (as tables can share variable names but have different meanings)
 # 	{table_name: {variable_name : translation}}
-translation_reference = schema.groupby('TABLE')[['VARIABLE_NAME','TRANSLATION']].apply(lambda g: dict(map(tuple, g.values.tolist()))).to_dict() # Matches 
+_translation_reference = _schema.groupby('TABLE')[['VARIABLE_NAME','TRANSLATION']].apply(lambda g: dict(map(tuple, g.values.tolist()))).to_dict() # Matches 
 
 # Read all CSV's in the directory denoted by <path>
 #	{filename : pandas.DataFrame}
-dfs = dict([(df_name_reference.get(csv), pd.read_csv( os.path.join(path, csv) ).rename(columns = translation_reference.get(table_reference.get(csv)))) for csv in os.listdir(path) if csv.endswith('.csv')])
+dfs = dict([(_df_name_reference.get(csv), pd.read_csv( os.path.join(_path, csv) ).rename(columns = _translation_reference.get(_table_reference.get(csv)))) for csv in os.listdir(_path) if csv.endswith('.csv')])
