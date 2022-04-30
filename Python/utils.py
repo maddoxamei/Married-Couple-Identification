@@ -16,8 +16,4 @@ translation_reference = schema.groupby('TABLE')[['VARIABLE_NAME','TRANSLATION']]
 
 # Read all CSV's in the directory denoted by <path>
 #	{filename : pandas.DataFrame}
-dfs = dict([(csv, pd.read_csv( os.path.join(path, csv) ).rename(columns = translation_reference.get(table_reference.get(csv)))) for csv in os.listdir(path) if csv.endswith('.csv')])
-
-for key,value in dfs.items():
-    if key.endswith('.csv'):
-        dfs[df_name_reference[key]] = dfs.pop(key)
+dfs = dict([(df_name_reference.get(csv), pd.read_csv( os.path.join(path, csv) ).rename(columns = translation_reference.get(table_reference.get(csv)))) for csv in os.listdir(path) if csv.endswith('.csv')])
