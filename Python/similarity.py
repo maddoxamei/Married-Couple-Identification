@@ -1,5 +1,19 @@
+from tensorflow.python.training.tracking.data_structures import NoDependency
 import tensorflow as tf
 import numpy as np
+import json, os
+
+_model_path = "../models"
+
+early_stopping = tf.keras.callbacks.EarlyStopping(
+    monitor='val_loss',
+    min_delta=0,
+    patience=5,
+    verbose=0,
+    mode='auto',
+    baseline=None,
+    restore_best_weights=True
+)
 
 class Encoder(tf.keras.layers.Layer):
     def __init__(self, latent_dimension, hidden_layers = 1, log_progression = False, activation = None, **kwargs):
@@ -14,12 +28,22 @@ class Encoder(tf.keras.layers.Layer):
             self.units = np.geomspace(input_shape[-1], self.latent_dimension, self.hidden_layers + 1)[1:]
         else:
             self.units = np.linspace(input_shape[-1], self.latent_dimension, self.hidden_layers + 1)[1:]
-        self.hidden_layers = [tf.keras.layers.Dense(units = units, activation = self.activation) for units in self.units]
+        self.hidden_layers = [tf.keras.layers.Dense(units = int(units), activation = self.activation) for units in self.units]
     
     def call(self, x): # x represents the input features/tensor
         for layer in self.hidden_layers:
             x = layer(x)
         return x
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "latent_dimension": self.latent_dimension,
+            "hidden_layers": self.hidden_layers,
+            "log_progression": self.log_progression,
+            "activation": self.activation,
+        })
+        return config
     
 class Decoder(tf.keras.layers.Layer):
     def __init__(self, output_dimension, hidden_layers = 1, log_progression = False, activation = None, **kwargs):
@@ -38,18 +62,28 @@ class Decoder(tf.keras.layers.Layer):
             self.units = np.geomspace(input_shape[-1], self.output_dimension, self.hidden_layers + 1)[1:-1]
         else:
             self.units = np.linspace(input_shape[-1], self.output_dimension, self.hidden_layers + 1)[1:-1]
-        self.hidden_layers = [tf.keras.layers.Dense(units = units, activation = self.activation) for units in self.units]
+        self.hidden_layers = [tf.keras.layers.Dense(units = int(units), activation = self.activation) for units in self.units]
     
     def call(self, x): # x represents the input features/tensor    
         for layer in self.hidden_layers:
             x = layer(x)
         return self.output_layer(x)
     
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            "output_dimension": self.output_dimension,
+            "hidden_layers": self.hidden_layers,
+            "log_progression": self.log_progression,
+            "activation": self.activation,
+        })
+        return config
+    
 class Autoencoder(tf.keras.Model):
     def __init__(self, *args, **kwargs):
         super(Autoencoder, self).__init__()
         self.encoder = Encoder(*args, **kwargs)
-        self.kwargs = kwargs
+        self.kwargs = NoDependency(kwargs)
         self.output_dimension = kwargs.get('output_dimension')
         
     def build(self, input_shape):
@@ -63,6 +97,12 @@ class Autoencoder(tf.keras.Model):
         encoded = self.encoder(input_features)
         decoded = self.decoder(encoded)
         return decoded
+    
+    def get_config(self):
+        return {'kwargs': self.kwargs, 
+                       'encoder': self.encoder, 
+                       'decoder': self.decoder, 
+                       'output_dimension': self.output_dimension}
     
 if __name__ == "__main__":
     
