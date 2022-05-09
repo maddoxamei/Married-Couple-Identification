@@ -1,2 +1,7 @@
 pandas
 openpyxl
+numpy
+scipy
+pulp
+tensorflow
+os
