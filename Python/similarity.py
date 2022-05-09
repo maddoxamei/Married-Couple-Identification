@@ -2,8 +2,10 @@ from tensorflow.python.training.tracking.data_structures import NoDependency
 import tensorflow as tf
 import numpy as np
 import json, os
+import pandas as pd
+from global_variables import *
 
-_model_path = "../models"
+
 
 early_stopping = tf.keras.callbacks.EarlyStopping(
     monitor='val_loss',
@@ -31,6 +33,8 @@ class Encoder(tf.keras.layers.Layer):
         self.hidden_layers = [tf.keras.layers.Dense(units = int(units), activation = self.activation) for units in self.units]
     
     def call(self, x): # x represents the input features/tensor
+        if isinstance(x, pd.DataFrame) or isinstance(x, pd.Series):
+            x = np.array(x) # Ensure x is a tensor and NOT a pandas construction
         for layer in self.hidden_layers:
             x = layer(x)
         return x
@@ -65,6 +69,8 @@ class Decoder(tf.keras.layers.Layer):
         self.hidden_layers = [tf.keras.layers.Dense(units = int(units), activation = self.activation) for units in self.units]
     
     def call(self, x): # x represents the input features/tensor    
+        if isinstance(x, pd.DataFrame) or isinstance(x, pd.Series):
+            x = np.array(x) # Ensure x is a tensor and NOT a pandas construction
         for layer in self.hidden_layers:
             x = layer(x)
         return self.output_layer(x)
@@ -103,6 +109,49 @@ class Autoencoder(tf.keras.Model):
                        'encoder': self.encoder, 
                        'decoder': self.decoder, 
                        'output_dimension': self.output_dimension}
+    
+    
+    
+def _save_json(json_config, filename):
+    """ 
+    :param json_object: 
+    :type dict
+    :param filename: name of json file to save
+    :type str
+    """
+    with open(os.path.join(model_path, filename)+'.json', "w") as file:  
+        json.dump(json_config, file) 
+    
+def save_history(history_object, filename):
+    json_config = pd.DataFrame.from_dict(history_object.history).to_dict()
+    _save_json(json_config, filename)
+    
+def save_model(model, filename):
+    """ 
+    :param model: the model to save
+    :type keras.Model
+    :param filename: 
+    :type str
+    """
+    json_config = model.to_json()
+    _save_json(json_config, filename)
+    model.save_weights(os.path.join(model_path, filename)+'.h5', save_format="h5")
+    model.save(os.path.join(model_path, filename))
+    
+def load_model(model, filename):
+    """ 
+    :param model: the model to save
+    :type keras.Model
+    :param filename: 
+    :type str
+    """
+    json_config = model.to_json()
+    _save_json(json_config, filename)
+    model.save_weights(os.path.join(model_path, filename)+'.h5', save_format="h5")
+    model.save(os.path.join(model_path, filename))
+    
+    
+    
     
 if __name__ == "__main__":
     
