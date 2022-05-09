@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 import os
+from global_variables import *
 
-_path = "../data"
-_schema = pd.read_excel(os.path.join(_path, "schema.xlsx"), 1, engine='openpyxl')
+data_path = "../data"
+_schema = pd.read_excel(os.path.join(data_path, "schema.xlsx"), 1, engine='openpyxl')
 _schema.loc[:,'VARIABLE_NAME'] = _schema.loc[:,'VARIABLE_NAME'].str.upper()
 
 # Matches the file name with the table name in the schema
@@ -17,4 +18,4 @@ _translation_reference = _schema.groupby('TABLE')[['VARIABLE_NAME','TRANSLATION'
 
 # Read all CSV's in the directory denoted by <path>
 #	{filename : pandas.DataFrame}
-dfs = dict([(_df_name_reference.get(csv), pd.read_csv( os.path.join(_path, csv) ).rename(columns = _translation_reference.get(_table_reference.get(csv)))) for csv in os.listdir(_path) if csv.endswith('.txt')])
+dfs = dict([(_df_name_reference.get(csv), pd.read_csv( os.path.join(data_path, csv) ).rename(columns = _translation_reference.get(_table_reference.get(csv)))) for csv in os.listdir(data_path) if csv.endswith('.txt')])

@@ -5,8 +5,6 @@ import json, os
 import pandas as pd
 from global_variables import *
 
-
-
 early_stopping = tf.keras.callbacks.EarlyStopping(
     monitor='val_loss',
     min_delta=0,
@@ -33,8 +31,6 @@ class Encoder(tf.keras.layers.Layer):
         self.hidden_layers = [tf.keras.layers.Dense(units = int(units), activation = self.activation) for units in self.units]
     
     def call(self, x): # x represents the input features/tensor
-        if isinstance(x, pd.DataFrame) or isinstance(x, pd.Series):
-            x = np.array(x) # Ensure x is a tensor and NOT a pandas construction
         for layer in self.hidden_layers:
             x = layer(x)
         return x
@@ -68,9 +64,7 @@ class Decoder(tf.keras.layers.Layer):
             self.units = np.linspace(input_shape[-1], self.output_dimension, self.hidden_layers + 1)[1:-1]
         self.hidden_layers = [tf.keras.layers.Dense(units = int(units), activation = self.activation) for units in self.units]
     
-    def call(self, x): # x represents the input features/tensor    
-        if isinstance(x, pd.DataFrame) or isinstance(x, pd.Series):
-            x = np.array(x) # Ensure x is a tensor and NOT a pandas construction
+    def call(self, x): # x represents the input features/tensor   
         for layer in self.hidden_layers:
             x = layer(x)
         return self.output_layer(x)
